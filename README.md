@@ -1,7 +1,5 @@
 # Provable Decremental Reinforcement Unlearning Against Environment Inference Attacks
 
-Official implementation for our NeurIPS submission.
-
 ## What this repo does
 1. Trains a continuous-control SAC agent on a partitioned continuous MDP
    (`SectorNav`: 4 sectors = 4 sub-environments with distinct drift dynamics).
