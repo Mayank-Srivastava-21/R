@@ -1,0 +1,4 @@
+method,seconds
+ours (full),41.80720749435326
+cf fine-tune,42.46507151797414
+retrain-from-scratch (oracle),273.5470881539707

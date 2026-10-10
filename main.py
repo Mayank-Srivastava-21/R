@@ -2,9 +2,9 @@
 reinforcement unlearning with ablations, sweeps, ROC, and CSV export.
 
 CHANGES IN THIS REVISION
-  1. Per-algorithm results.json is written BEFORE any plotting, and every
-     figure call is guarded, so a plotting bug can never destroy compute.
-  2. Cleaned figure path construction in emit().
+  1. aggregate(): mean ROC curves are stored as plain Python lists
+     (fpr.tolist(), tpr.tolist()) so results are always JSON-serializable.
+  2. (utils.save_json now also has a numpy/torch fallback serializer.)
 
 Usage:  python -u main.py --seeds 0 1 2
 """
@@ -199,7 +199,9 @@ def aggregate(per_seed, cfg):
     for key in per_seed[0]["roc"]:
         fpr = np.mean([np.array(p["roc"][key][0]) for p in per_seed], axis=0)
         tpr = np.mean([np.array(p["roc"][key][1]) for p in per_seed], axis=0)
-        roc[key] = (fpr, tpr, float(np.mean([p["roc"][key][2] for p in per_seed])))
+        # FIX: store as plain lists so the aggregate is JSON-serializable
+        roc[key] = (fpr.tolist(), tpr.tolist(),
+                    float(np.mean([p["roc"][key][2] for p in per_seed])))
     histories = {k: [h for p in per_seed for h in p["histories"][k]]
                  for k in per_seed[0]["histories"]}
     headline = {
@@ -260,7 +262,7 @@ def main():
         per_seed = [run_seed(cfg, s, device, algo) for s in cfg.seeds]
         agg = aggregate(per_seed, cfg)
         results[algo] = {"per_seed": per_seed, "aggregate": agg}
-        # ---- SAVE FIRST, plot second: never lose compute to a figure bug ----
+        # ---- SAVE FIRST, plot second: never lose compute to a downstream bug ----
         save_json(results[algo], f"{args.out}/results_{algo}.json")
         emit(algo, agg, cfg, args.out)
         h = agg["headline"]
